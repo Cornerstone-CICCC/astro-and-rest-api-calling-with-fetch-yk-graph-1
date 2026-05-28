@@ -40,6 +40,8 @@ import { API_URL } from '@/constants';
 </Layout>
 
 <script>
+  import { sleep } from '@/utils';
+  
   const form = document.querySelector<HTMLFormElement>('#create-form');
   const errorDiv = document.querySelector<HTMLDivElement>('#error-message');
   const statusDiv = document.querySelector<HTMLDivElement>('#status-message');
@@ -70,6 +72,8 @@ import { API_URL } from '@/constants';
         statusDiv.textContent = 'Post created successfully!';
         statusDiv.classList.remove('hidden');
       }
+
+      await sleep(5000);
 
       window.location.href = '/';
     } catch (error) {
