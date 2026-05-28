@@ -1,9 +1,56 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '@/layouts/Layout.astro';
+import type { Post } from '@/types';
+
+const API_URL = import.meta.env.API_URL || 'http://localhost:3001';
+
+let posts: Post[] | null = null;
+let error: string | null = null;
+
+try {
+	const response = await fetch(`${API_URL}/posts`);
+	
+	if (!response.ok) {
+		throw new Error(`API Error: ${response.status} ${response.statusText}`);
+	}
+	
+	posts = await response.json();
+} catch (error) {
+	error = error instanceof Error ? error.message : 'An unknown error occurred';
+	console.error('Data fetching error:', error);
+}
 ---
 
 <Layout>
-	<div class="h-screen w-full flex items-center justify-center bg-gray-500">
-		<h1>Astro + REST API Calling with Fetch</h1>
+	<h1>Astro + REST API Calling with Fetch</h1>
+	
+	<div class="posts-container">
+		{error ? (
+			<div class="error-message bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+				<h2>An error occurred</h2>
+				<p>{error}</p>
+				<p class="text-sm text-gray-600 mt-2">Please check the console for more details.</p>
+			</div>
+		) : posts ? (
+			<table class="table-auto border-collapse border border-white w-full">
+				<tr>
+					<th class="border border-white p-2 text-left">ID</th>
+					<th class="border border-white p-2 text-left">Title</th>
+					<th class="border border-white p-2 text-left">Detail</th>
+					<th class="border border-white p-2 text-left">Edit</th>
+				</tr>
+
+				{posts.map((post) => (
+					<tr>
+						<td class="border border-white p-2">{post.id}</td>
+						<td class="border border-white p-2">{post.title}</td>
+						<td class="border border-white p-2"><button class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">more</button></td>
+						<td class="border border-white p-2"><button class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">Edit</button></td>
+					</tr>
+				))}
+			</table>
+		) : (
+			<p class="text-gray-600">Loading posts...</p>
+		)}
 	</div>
 </Layout>
