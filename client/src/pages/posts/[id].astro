@@ -1,0 +1,53 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import type { Post } from '@/types';
+import { API_URL } from '@/constants';
+
+export async function getStaticPaths() {
+  const response = await fetch(`${API_URL}/posts`);
+  const posts: Post[] = await response.json();
+
+  return posts.map((post) => ({
+    params: { id: String(post.id) },
+  }));
+}
+
+const { id } = Astro.params;
+
+let post: Post | null = null;
+let error: string | null = null;
+
+try {
+  const response = await fetch(`${API_URL}/posts/${id}`);
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  post = await response.json();
+} catch (error) {
+  error = error instanceof Error ? error.message : 'An unknown error occurred';
+  console.error('Data fetching error:', error);
+}
+---
+
+<Layout>
+  <div class="max-w-2xl mx-auto p-6">
+    <a href="/" class="inline-block mb-6 text-sm text-stone-400">
+      ◀ Back to list
+    </a>
+
+    {error ? (
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+        <h2 class="font-bold">An error occurred</h2>
+        <p>{error}</p>
+      </div>
+    ) : post ? (
+      <article class="border border-white rounded p-6">
+        <p class="text-sm text-stone-400 mb-2">Post ID: {post.id} / User ID: {post.userId}</p>
+        <h1 class="text-2xl font-bold mb-4">{post.title}</h1>
+        <p class="leading-relaxed">{post.body}</p>
+      </article>
+    ) : null}
+  </div>
+</Layout>

@@ -1,8 +1,7 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import type { Post } from '@/types';
-
-const API_URL = import.meta.env.API_URL || 'http://localhost:3001';
+import { API_URL } from '@/constants';
 
 let posts: Post[] | null = null;
 let error: string | null = null;
@@ -44,7 +43,7 @@ try {
 					<tr>
 						<td class="border border-white p-2">{post.id}</td>
 						<td class="border border-white p-2">{post.title}</td>
-						<td class="border border-white p-2"><button class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">more</button></td>
+						<td class="border border-white p-2"><a href={`/posts/${post.id}`} class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">more</a></td>
 						<td class="border border-white p-2"><button class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">Edit</button></td>
 					</tr>
 				))}
