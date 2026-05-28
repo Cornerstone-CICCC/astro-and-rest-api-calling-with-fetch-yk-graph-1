@@ -35,11 +35,16 @@ try {
   <div class="w-2/5">
     <div class="w-full flex justify-between items-center mb-4">
       <a href="/" class="inline-block text-sm text-stone-400">◀ Back to list</a>
-      {post &&
-        <button id="delete-btn" data-post-id={post.id} data-api-url={API_URL} class="text-sm bg-red-900 text-white px-4 py-2 rounded cursor-pointer hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed">
-          Delete
-        </button>
-      }
+      {post && (
+        <div class="flex gap-2">
+          <a href={`/posts/${post.id}/edit`} class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">
+            Edit
+          </a>
+          <button id="delete-btn" data-post-id={post.id} data-api-url={API_URL} class="text-sm bg-red-900 text-white px-4 py-2 rounded cursor-pointer hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed">
+            Delete
+          </button>
+        </div>
+      )}
     </div>
 
     <div id="status-message" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert"></div>

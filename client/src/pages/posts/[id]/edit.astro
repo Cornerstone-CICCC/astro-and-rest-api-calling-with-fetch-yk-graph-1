@@ -1,0 +1,126 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import type { Post } from '@/types';
+import { API_URL } from '@/constants';
+
+export async function getStaticPaths() {
+  const response = await fetch(`${API_URL}/posts`);
+  const posts: Post[] = await response.json();
+
+  return posts.map((post) => ({
+    params: { id: String(post.id) },
+  }));
+}
+
+const { id } = Astro.params;
+
+let post: Post | null = null;
+let fetchError: string | null = null;
+
+try {
+  const response = await fetch(`${API_URL}/posts/${id}`);
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  post = await response.json();
+} catch (e) {
+  fetchError = e instanceof Error ? e.message : 'An unknown error occurred';
+  console.error('Data fetching error:', fetchError);
+}
+---
+
+<Layout>
+  <div class="w-80">
+    <div id="status-message" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert"></div>
+
+    <div class="w-full flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold">Edit Post</h1>
+      <a href={'/'} class="inline-block text-sm text-stone-400">◀ Back to list</a>
+    </div>
+
+    {fetchError ? (
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+        <h2 class="font-bold">An error occurred</h2>
+        <p>{fetchError}</p>
+      </div>
+    ) : post ? (
+      <form id="edit-form" data-api-url={API_URL} data-post-id={post.id} class="flex flex-col gap-4">
+        <div>
+          <label for="userId" class="block text-sm font-medium mb-1">User ID</label>
+          <input id="userId" name="userId" type="number" required value={post.userId} class="w-full bg-stone-700 text-white px-3 py-2 rounded border border-stone-500 focus:outline-none focus:border-white" />
+        </div>
+
+        <div>
+          <label for="title" class="block text-sm font-medium mb-1">Title</label>
+          <input id="title" name="title" type="text" required value={post.title} class="w-full bg-stone-700 text-white px-3 py-2 rounded border border-stone-500 focus:outline-none focus:border-white" />
+        </div>
+
+        <div>
+          <label for="body" class="block text-sm font-medium mb-1">Body</label>
+          <textarea id="body" name="body" required rows="5" class="w-full bg-stone-700 text-white px-3 py-2 rounded border border-stone-500 focus:outline-none focus:border-white resize-none">{post.body}</textarea>
+        </div>
+
+        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert"></div>
+
+        <div class="flex justify-end">
+          <button type="submit" class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600 disabled:opacity-50 disabled:cursor-not-allowed">
+            Update
+          </button>
+        </div>
+      </form>
+    ) : null}
+  </div>
+</Layout>
+
+<script>
+  import { sleep } from '@/utils';
+
+  const form = document.querySelector<HTMLFormElement>('#edit-form');
+  const errorDiv = document.querySelector<HTMLDivElement>('#error-message');
+  const statusDiv = document.querySelector<HTMLDivElement>('#status-message');
+  const submitBtn = document.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const apiUrl = form.dataset.apiUrl;
+    const postId = form.dataset.postId;
+    const formData = new FormData(form);
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      const response = await fetch(`${apiUrl}/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: Number(formData.get('userId')),
+          title: formData.get('title'),
+          body: formData.get('body'),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      if (statusDiv) {
+        statusDiv.textContent = 'Post updated successfully!';
+        statusDiv.classList.remove('hidden');
+      }
+
+      await sleep(3000);
+
+      window.location.href = `/posts/${postId}`;
+    } catch (error) {
+      if (errorDiv) {
+        errorDiv.textContent = error instanceof Error ? error.message : 'An unknown error occurred';
+        errorDiv.classList.remove('hidden');
+      }
+
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+</script>
