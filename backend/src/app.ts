@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 
 import { PostRepository } from '@/repositories/post.repository'
 import { PostService } from '@/services/post.service'
@@ -10,6 +11,7 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 app.use(express.json())
+app.use(cors())
 
 const postRepository = new PostRepository()
 const postService = new PostService(postRepository)
