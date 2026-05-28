@@ -1,0 +1,82 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { API_URL } from '@/constants';
+---
+
+<Layout>
+  <div class="w-80">
+    <div id="status-message" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert"></div>
+
+    <div class="w-full flex justify-between items-center mb-6">
+      <h1 class="text-xl font-bold">Create New Post</h1>
+      <a href="/" class="text-sm text-stone-400 hover:text-white">← Back to list</a>
+    </div>
+
+    <form id="create-form" data-api-url={API_URL} class="flex flex-col gap-4">
+      <div>
+        <label for="userId" class="block text-sm font-medium mb-1">User ID</label>
+        <input id="userId" name="userId" type="number" required class="w-full bg-stone-700 text-white px-3 py-2 rounded border border-stone-500 focus:outline-none focus:border-white" />
+      </div>
+
+      <div>
+        <label for="title" class="block text-sm font-medium mb-1">Title</label>
+        <input id="title" name="title" type="text" required class="w-full bg-stone-700 text-white px-3 py-2 rounded border border-stone-500 focus:outline-none focus:border-white" />
+      </div>
+
+      <div>
+        <label for="body" class="block text-sm font-medium mb-1">Body</label>
+        <textarea id="body" name="body" required rows="5" class="w-full bg-stone-700 text-white px-3 py-2 rounded border border-stone-500 focus:outline-none focus:border-white resize-none"></textarea>
+      </div>
+
+      <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert"></div>
+
+      <div class="flex justify-end">
+        <button type="submit" class="text-sm bg-stone-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-stone-600">
+          Create
+        </button>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#create-form');
+  const errorDiv = document.querySelector<HTMLDivElement>('#error-message');
+  const statusDiv = document.querySelector<HTMLDivElement>('#status-message');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const apiUrl = form.dataset.apiUrl;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${apiUrl}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: Number(formData.get('userId')),
+          title: formData.get('title'),
+          body: formData.get('body'),
+        }),
+      });
+
+      if (!response.ok) {
+        console.log('API response:', response);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      if (statusDiv) {
+        statusDiv.textContent = 'Post created successfully!';
+        statusDiv.classList.remove('hidden');
+      }
+
+      window.location.href = '/';
+    } catch (error) {
+      if (errorDiv) {
+        errorDiv.textContent = error instanceof Error ? error.message : 'An unknown error occurred';
+        errorDiv.classList.remove('hidden');
+      }
+    }
+  });
+</script>
